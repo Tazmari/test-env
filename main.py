@@ -14,7 +14,7 @@ plt.style.use('fivethirtyeight')
 
 #Show the close price data
 #Side bar start date input - default tody -200 days
-start_date = st.sidebar.date_input("Start Date", datetime.datetime.now() - datetime.timedelta(days=250))
+start_date = st.sidebar.date_input("Start Date", datetime.datetime.now() - datetime.timedelta(days=1000))
 #Side bar end date input
 end_date = st.sidebar.date_input('End date', datetime.datetime.now().date())
 #Hard coded ticker list to be used later
@@ -127,15 +127,25 @@ col2.text(f"Total profit")
 col2.write(profit)
 
 # SMA
-df['SMA'] = talib.SMA(df['Close'], timeperiod = 10)
-df['SMA-5%'] = talib.SMA(df['Close']*.95, timeperiod = 10)
-df['SMA+5%'] = talib.SMA(df['Close']*1.05, timeperiod = 10)
+df['SMA'] = talib.SMA(df['Close'], timeperiod = 200)
+df['SMA-5%'] = talib.SMA(df['Close']*.95, timeperiod = 200)
+df['SMA+5%'] = talib.SMA(df['Close']*1.05, timeperiod = 200)
 #string_name = tickerData.info['longName']
 #st.header(f"Simple Moving Average vs Adj Close {string_name}")
 st.line_chart(df[['Close','SMA','SMA-5%','SMA+5%']])
 sma5_list = df['SMA-5%']
 sma5_last = round(sma5_list[-1],2)
 
+# RSI
+df['RSI'] = talib.RSI(df['Close'],14)
+df['RSI'].plot(figsize=(8,8),marker='o')
+df['sell'] = 70
+df['buy'] = 30
+st.line_chart(df[['RSI','sell','buy']])
+
+# Calculate the MACD
+df["macd"], df["macd_signal"], df["macd_hist"] = talib.MACD(df["Close"], fastperiod=12, slowperiod=26, signalperiod=9)
+st.line_chart(df[['macd','macd_signal','macd_hist']])
 
 #testing how to build a loop - this works
 #for ticker_list_items in ticker_list:
@@ -158,22 +168,12 @@ sma5_last = round(sma5_list[-1],2)
 
 #def check(sma5_last2, price2):
 
-for ticker_list_items in ticker_list:
-        ticker_list_objects = yf.Ticker(ticker_list_items)
-
-current_price_df = ticker_list_objects.history(start=start_date, end=end_date)
-price2 = round(current_price_df['Close'].iloc[-1],2)
-
-current_price_df2 = ticker_list_objects.history(start=start_date, end=end_date)
-current_price_df2['SMA-5%'] = talib.SMA(current_price_df2['Close']*.95, timeperiod = 10)
-sma5_list2 = current_price_df2['SMA-5%']
-sma5_last2 = round(sma5_list2[-1],2)
-
-def check(sma5_last2,price2):
-    if sma5_last2>= price2:
-       return True
-    return False
-if (sma5_last2,price2):
-    print("Yes")
-else:
-    print("No")
+# for ticker_list_items in ticker_list:
+#     ticker_list_objects = yf.Ticker(ticker_list_items)
+#     current_price_df = ticker_list_objects.history(start=start_date, end=end_date)
+#     price2 = round(current_price_df['Close'].iloc[-1],2)
+#     current_price_df2 = ticker_list_objects.history(start=start_date, end=end_date)
+#     current_price_df2['SMA-5%'] = talib.SMA(current_price_df2['Close']*.95, timeperiod = 200)
+#     sma5_list2 = current_price_df2['SMA-5%']
+#     sma5_last2 = round(sma5_list2[-1],2)
+#     st.write(ticker_list_items,sma5_last2,price2,sma5_last2 > price2)
